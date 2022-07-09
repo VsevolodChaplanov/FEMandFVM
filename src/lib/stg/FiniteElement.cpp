@@ -24,7 +24,7 @@ FEM::LinearLineElement::LinearLineElement(
     center_point(calc_center_point(vertices))
 { }
 
-const std::array<double, 1>& FEM::LinearLineElement::calc_center_point(const std::vector<double>& vertices) const {
+std::array<double, 1> FEM::LinearLineElement::calc_center_point(const std::vector<double>& vertices) const {
   std::array<double, 1> center = { 0. };
   center[0] = (vertices[3] - vertices[0]) / 2;
   return center;
@@ -106,7 +106,7 @@ FEM::LinearTriangleElement::LinearTriangleElement(
     center_point(calc_center_point(vertices))
 { }
 
-const std::array<double, 2>& FEM::LinearTriangleElement::calc_center_point(const std::vector<double>& vertices) const {
+std::array<double, 2> FEM::LinearTriangleElement::calc_center_point(const std::vector<double>& vertices) const {
   double area = det_j / 2;
   // Тут утечка памяти и я не знаю как её решить чтобы поле класса осталось константным 
   std::array<double, 2> center_coordinates = { 0., 0. };

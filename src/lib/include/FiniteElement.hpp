@@ -49,7 +49,7 @@ namespace FEM
     const std::array<std::function<double(const double*)>, 2> basis_functions;
     const double* base_point;
     const std::array<double, 1> center_point;
-    const std::array<double, 1>& calc_center_point(const std::vector<double>& vertices) const;
+    std::array<double, 1> calc_center_point(const std::vector<double>& vertices) const;
   public:
     double get_mass(size_t i, size_t j) const override; 
     double get_stiffness(size_t i, size_t j) const override;
@@ -75,7 +75,7 @@ namespace FEM
     const std::array<std::function<double(const double*)>, 3> basis_functions;
     const double* base_point;
     const std::array<double, 2> center_point;
-    const std::array<double, 2>& calc_center_point(const std::vector<double>& vertices) const;
+    std::array<double, 2> calc_center_point(const std::vector<double>& vertices) const;
   public:
     double get_mass(size_t i, size_t j) const override; 
     double get_stiffness(size_t i, size_t j) const override;

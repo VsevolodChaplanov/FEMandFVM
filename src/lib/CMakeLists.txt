@@ -11,13 +11,11 @@ set(SRC
     stg/FVM_FiniteVolumeElement.cpp
 )
 
-set(STG_lib STG_ex)
-
 find_package(Boost REQUIRED)
 
-add_library(${STG_lib} SHARED ${SRC} ${HEADERS})
-target_include_directories(${STG_lib} PRIVATE include)
-target_include_directories(${STG_lib} PRIVATE ${Boost_INCLUDE_DIR})
-target_link_libraries(${STG_lib} PRIVATE ${Boost_LIBARARIES})
+add_library(${PROJECT_NAME}_lib SHARED ${SRC} ${HEADERS})
+target_include_directories(${PROJECT_NAME}_lib PRIVATE include)
+target_include_directories(${PROJECT_NAME}_lib PRIVATE ${Boost_INCLUDE_DIR})
+target_link_libraries(${PROJECT_NAME}_lib PRIVATE ${Boost_LIBARARIES})
 
 add_subdirectory(tests)
