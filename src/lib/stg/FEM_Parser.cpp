@@ -1,12 +1,12 @@
 #include "FEM_Parser.hpp"
 
-FEM::IFEMParser* FEM::IFEMParser::Factory(const std::string &filename)
+std::shared_ptr<IFEMParser> IFEMParser::Factory(const std::string &filename)
 {
   boost::char_separator<char> sep {"."};
   boost::tokenizer<boost::char_separator<char>> tokenizer(filename, sep);
   std::vector<std::string> filename_parsed;
   for (boost::tokenizer<boost::char_separator<char>>::iterator it = tokenizer.begin(); 
-          it != tokenizer.end(); ++it)
+    it != tokenizer.end(); ++it)
   {
       filename_parsed.push_back(*it);
   }
@@ -14,18 +14,18 @@ FEM::IFEMParser* FEM::IFEMParser::Factory(const std::string &filename)
 
   if ( *(filename_parsed.end() - 1) == "vtk")
   {
-    return new VtkFEMParser(filename);
+    return std::make_shared<VtkFEMParser>(filename);
   }
   throw std::runtime_error("This file format is not supported");
 }
 
-FEM::IFEMParser::IFEMParser(const std::string &filename) : filename(filename) { }
+IFEMParser::IFEMParser(const std::string &filename) : filename(filename) { }
 
-FEM::IFEMParser::~IFEMParser() { }
+IFEMParser::~IFEMParser() { }
 
-FEM::VtkFEMParser::VtkFEMParser(const std::string &filename) : IFEMParser(filename) { }
+VtkFEMParser::VtkFEMParser(const std::string &filename) : IFEMParser(filename) { }
 
-FEM::Mesh  FEM::VtkFEMParser::load_mesh()
+Mesh  VtkFEMParser::load_mesh()
 {
   std::ifstream file(filename, std::ios_base::in);
 
@@ -95,7 +95,7 @@ FEM::Mesh  FEM::VtkFEMParser::load_mesh()
 
   file.close();
 
-  FEM::Mesh mesh(
+  Mesh mesh(
       Nvert,
       Nelem,
       vertices,
@@ -106,4 +106,4 @@ FEM::Mesh  FEM::VtkFEMParser::load_mesh()
   return mesh;
 }
 
-FEM::VtkFEMParser::~VtkFEMParser() { }
+VtkFEMParser::~VtkFEMParser() { }

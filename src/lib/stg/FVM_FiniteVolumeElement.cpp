@@ -1,6 +1,6 @@
 #include "FVM_FiniteVolumeElement.hpp"
 
-FVM::FiniteVolumeElement::FiniteVolumeElement(
+FiniteVolumeElement::FiniteVolumeElement(
   const std::vector<double>& vertices, 
   const std::vector<size_t>& global_indices
 ) : global_indices(global_indices),
@@ -9,7 +9,7 @@ FVM::FiniteVolumeElement::FiniteVolumeElement(
     center(calc_cell_center(vertices))
 { }
 
-double FVM::FiniteVolumeElement::calc_area(const std::vector<double>& vertices) const {
+double FiniteVolumeElement::calc_area(const std::vector<double>& vertices) const {
   double summ = 0;
   for (size_t i = 0; i < n_vert - 1; i++)
   {
@@ -23,7 +23,7 @@ double FVM::FiniteVolumeElement::calc_area(const std::vector<double>& vertices) 
   return summ / 2.;
 }
 
-const double* FVM::FiniteVolumeElement::calc_cell_center(const std::vector<double>& vertices) const {
+const double* FiniteVolumeElement::calc_cell_center(const std::vector<double>& vertices) const {
   double* center_coordinates = new double[2] { 0., 0. };
   for (size_t i = 0; i < n_vert; i++)
   {
@@ -42,19 +42,27 @@ const double* FVM::FiniteVolumeElement::calc_cell_center(const std::vector<doubl
   return center_coordinates;
 }
 
-const double* FVM::FiniteVolumeElement::cell_center() const {
+const double* FiniteVolumeElement::cell_center() const {
   return center;
 }
 
-const std::vector<size_t>& FVM::FiniteVolumeElement::get_global_indices() const {
+double FiniteVolumeElement::get_volume() const {
+  return area;
+}
+
+size_t FiniteVolumeElement::get_vertices_number() const {
+  return n_vert;
+}
+
+const std::vector<size_t>& FiniteVolumeElement::get_global_indices() const {
   return global_indices;
 }
 
-FVM::FiniteVolumeElement::~FiniteVolumeElement() {
+FiniteVolumeElement::~FiniteVolumeElement() {
   delete[] center;
 }
 
-FVM::Face::Face(
+Face::Face(
   const std::vector<double>& vertices, 
   const std::vector<size_t>& global_indices
 ) : global_indices(global_indices),
@@ -63,23 +71,35 @@ FVM::Face::Face(
     center(calc_face_center(vertices))
 { }
 
-double FVM::Face::calc_lenght(const std::vector<double>& vertices) const {
+double Face::calc_lenght(const std::vector<double>& vertices) const {
   double face_length = sqrt( (vertices[3] - vertices[0]) * (vertices[3] - vertices[0]) +
     (vertices[3 + 1] - vertices[1]) * (vertices[3 + 1] - vertices[1]) );
   return face_length;
 }
 
-const double* FVM::Face::calc_face_center(const std::vector<double>& vertices) const {
+const double* Face::calc_face_center(const std::vector<double>& vertices) const {
   double* center = new double[2] { 0., 0. };
   center[0] = (vertices[0] + vertices[3]) / 2;
   center[1] = (vertices[1] + vertices[3 + 1]) / 2;
   return center;
 }
 
-const std::vector<size_t>& FVM::Face::get_global_indices() const {
+const double* Face::face_center() const {
+  return center;
+}
+
+double Face::get_volume() const {
+  return lenght;
+}
+
+size_t Face::get_vertices_number() const{
+  return n_vert;
+}
+
+const std::vector<size_t>& Face::get_global_indices() const {
   return global_indices;
 }
 
-FVM::Face::~Face() {
+Face::~Face() {
   delete[] center;
 }

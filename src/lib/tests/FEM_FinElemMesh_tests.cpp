@@ -15,9 +15,9 @@ bool compare_vectors(const std::vector<T>& first, const std::vector<T>& second) 
 
 TEST_CASE( "Finite elements mesh parser", "[ParserVTK][Parser]" )
 {
-  FEM::VtkFEMParser test_vtk("./test_resources/Rect.1.1mesh.1.vtk");
+  VtkFEMParser test_vtk("./test_resources/Rect.1.1mesh.1.vtk");
 
-  FEM::Mesh test_mesh = test_vtk.load_mesh();
+  Mesh test_mesh = test_vtk.load_mesh();
 
   REQUIRE( test_mesh.get_vertices_number() == 98 );
   REQUIRE( test_mesh.get_elements_number() == 198 );
@@ -89,7 +89,7 @@ TEST_CASE( "Finite elements mesh parser", "[ParserVTK][Parser]" )
 }
 
 TEST_CASE( "FEM linear line element assemble, test properties", "[FEM][LinearLineElement]" ) {
-  std::unique_ptr<FEM::IFiniteElement> test_linear_element = FEM::FiniteElementFactory::create_element(
+  std::shared_ptr<IFiniteElement> test_linear_element = FiniteElementFactory::create_element(
     {0., 0., 0., 1., 0., 0.},
     {0, 1},
     1
@@ -121,10 +121,12 @@ TEST_CASE( "FEM linear line element assemble, test properties", "[FEM][LinearLin
   CHECK( test_linear_element->get_stiffness(0, 1) == test_stiffness[1] );
   CHECK( test_linear_element->get_stiffness(1, 0) == test_stiffness[2] );
   CHECK( test_linear_element->get_stiffness(1, 1) == test_stiffness[3] );
+
+  delete[] test_center;
 }
 
 TEST_CASE( "FEM linear triange element assemble, test properties", "[FEM][LinearTriangleElement]" ) {
-  std::unique_ptr<FEM::IFiniteElement> test_linear_element = FEM::FiniteElementFactory::create_element(
+  std::shared_ptr<IFiniteElement> test_linear_element = FiniteElementFactory::create_element(
       {0., 0., 0., 1., 0., 0., 0., 1., 0.},
       {0, 1, 2},
       2
@@ -175,17 +177,89 @@ TEST_CASE( "FEM linear triange element assemble, test properties", "[FEM][Linear
   CHECK( test_linear_element->get_stiffness(2, 0) == test_stiffness[6] );
   CHECK( test_linear_element->get_stiffness(2, 1) == test_stiffness[7] );
   CHECK( test_linear_element->get_stiffness(2, 2) == test_stiffness[8] );
+
+  delete[] test_center;
+}
+
+TEST_CASE( "FEM linear rectangle element assemble, test properties", "[FEM][LinearRectangleElement]" ) {
+  std::shared_ptr<IFiniteElement> test_linear_element = FiniteElementFactory::create_element(
+      {0., 0., 0., 1., 0., 0., 1., 1., 0., 0., 1., 0.},
+      {0, 1, 2, 3},
+      3
+  );
+
+
+  double* test_center = new double[2] {1. / 2., 1. / 2.};
+  std::array<double, 4> test_lumped {1./4., 1./4., 1./4., 1./4.};
+  std::array<double, 16> test_mass { 1. / 36. * 4.,	1. / 36. * 2.,	1. / 36. * 1.,	1. / 36. * 2.,
+      1. / 36. * 2.,	1. / 36. * 4.,	1. / 36. * 2.,	1. /36. * 1.,
+      1. / 36. * 1.,	1. / 36. * 2.,	1. / 36. * 4.,	1. / 36. * 2.,
+      1. / 36. * 2.,	1. / 36. * 1.,	1. / 36. * 2.,	1. / 36. * 4. };
+  std::array<double, 16> test_stiffness { 2./3.,	-(1./6.),	-(1./3.),	-(1./6.),
+      -(1./6.),	2./3.,	-(1./6.),	-(1./3.),
+      -(1./3.),	-(1./6.),	2./3.,	-(1./6.),
+      -(1./6.),	-(1./3.),	-(1./6.),	2./3. };
+
+  CHECK( test_linear_element->get_center_coordinates()[0] == test_center[0] );
+  CHECK( test_linear_element->get_center_coordinates()[1] == test_center[1] );
+
+  CHECK( test_linear_element->get_element_type() == 3 );
+
+  CHECK( test_linear_element->get_number_basis_func() == 4 );
+
+  CHECK( test_linear_element->get_volume() == 1 );
+
+  CHECK( test_linear_element->get_lumped(0) == test_lumped[0] );
+  CHECK( test_linear_element->get_lumped(1) == test_lumped[1] );
+  CHECK( test_linear_element->get_lumped(2) == test_lumped[2] );
+  CHECK( test_linear_element->get_lumped(3) == test_lumped[3] );
+  
+  CHECK( test_linear_element->get_mass(0, 0) == test_mass[0] );
+  CHECK( test_linear_element->get_mass(0, 1) == test_mass[1] );
+  CHECK( test_linear_element->get_mass(0, 2) == test_mass[2] );
+  CHECK( test_linear_element->get_mass(0, 3) == test_mass[3] );
+  CHECK( test_linear_element->get_mass(1, 0) == test_mass[4] );
+  CHECK( test_linear_element->get_mass(1, 1) == test_mass[5] );
+  CHECK( test_linear_element->get_mass(1, 2) == test_mass[6] );
+  CHECK( test_linear_element->get_mass(1, 3) == test_mass[7] );
+  CHECK( test_linear_element->get_mass(2, 0) == test_mass[8] );
+  CHECK( test_linear_element->get_mass(2, 1) == test_mass[9] );
+  CHECK( test_linear_element->get_mass(2, 2) == test_mass[10] );
+  CHECK( test_linear_element->get_mass(2, 3) == test_mass[11] );
+  CHECK( test_linear_element->get_mass(3, 0) == test_mass[12] );
+  CHECK( test_linear_element->get_mass(3, 1) == test_mass[13] );
+  CHECK( test_linear_element->get_mass(3, 2) == test_mass[14] );
+  CHECK( test_linear_element->get_mass(3, 3) == test_mass[15] );
+
+  CHECK( test_linear_element->get_stiffness(0, 0) == test_stiffness[0] );
+  CHECK( test_linear_element->get_stiffness(0, 1) == test_stiffness[1] );
+  CHECK( test_linear_element->get_stiffness(0, 2) == test_stiffness[2] );
+  CHECK( test_linear_element->get_stiffness(0, 3) == test_stiffness[3] );
+  CHECK( test_linear_element->get_stiffness(1, 0) == test_stiffness[4] );
+  CHECK( test_linear_element->get_stiffness(1, 1) == test_stiffness[5] );
+  CHECK( test_linear_element->get_stiffness(1, 2) == test_stiffness[6] );
+  CHECK( test_linear_element->get_stiffness(1, 3) == test_stiffness[7] );
+  CHECK( test_linear_element->get_stiffness(2, 0) == test_stiffness[8] );
+  CHECK( test_linear_element->get_stiffness(2, 1) == test_stiffness[9] );
+  CHECK( test_linear_element->get_stiffness(2, 2) == test_stiffness[10] );
+  CHECK( test_linear_element->get_stiffness(2, 3) == test_stiffness[11] );
+  CHECK( test_linear_element->get_stiffness(3, 0) == test_stiffness[12] );
+  CHECK( test_linear_element->get_stiffness(3, 1) == test_stiffness[13] );
+  CHECK( test_linear_element->get_stiffness(3, 2) == test_stiffness[14] );
+  CHECK( test_linear_element->get_stiffness(3, 3) == test_stiffness[15] );
+
+  delete[] test_center;
 }
 
 TEST_CASE( "Save as vtk format tests", "[Savevtk]" )
 {
-  FEM::VtkFEMParser vtk_gmsh("./test_resources/Rect.1.1mesh.1.vtk");
-  FEM::Mesh mesh_gmsh_vtk = vtk_gmsh.load_mesh();
+  VtkFEMParser vtk_gmsh("./test_resources/Rect.1.1mesh.1.vtk");
+  Mesh mesh_gmsh_vtk = vtk_gmsh.load_mesh();
 
   mesh_gmsh_vtk.save_mesh_vtk("./test_resources/Rect.1.1mesh.1_test_save.vtk");
 
-  FEM::VtkFEMParser vtk_mymesh("./test_resources/Rect.1.1mesh.1_test_save.vtk");
-  FEM::Mesh mesh_mymesh_vtk = vtk_mymesh.load_mesh();
+  VtkFEMParser vtk_mymesh("./test_resources/Rect.1.1mesh.1_test_save.vtk");
+  Mesh mesh_mymesh_vtk = vtk_mymesh.load_mesh();
 
   std::vector<size_t> element_types_gmsh = mesh_gmsh_vtk.get_cell_types();
   std::vector<size_t> element_types_mymesh = mesh_mymesh_vtk.get_cell_types();
@@ -219,8 +293,8 @@ TEST_CASE( "Save as vtk format tests", "[Savevtk]" )
   CHECK( Approx(mesh_gmsh_vtk.get_vertex(10)[2]) == mesh_mymesh_vtk.get_vertex(10)[2] );
 }
 
-TEST_CASE( "FVM create a finite volume cell", "[FVM]" ) {
-  FVM::FiniteVolumeElement test_element(
+TEST_CASE( "FVM create a finite volume triangle cell", "[FVM][Triangle]" ) {
+  FiniteVolumeElement test_element(
     {0., 0., 0., 1., 0., 0., 0., 1., 0.},
     {0, 1, 2}
   );
@@ -232,6 +306,59 @@ TEST_CASE( "FVM create a finite volume cell", "[FVM]" ) {
     )
   );
 
-  CHECK(test_element.cell_center()[0] == 1./3.);
-  CHECK(test_element.cell_center()[1] == 1./3.);
+  CHECK( test_element.cell_center()[0] == 1. / 3. );
+  CHECK( test_element.cell_center()[1] == 1. / 3. );
+
+  CHECK( test_element.get_volume() == 1. / 2. );
+}
+
+
+TEST_CASE( "FVM create a finite volume cell", "[FVM][Quad]" ) {
+  FiniteVolumeElement test_element(
+    {0., 0., 0., 1., 0., 0., 1., 1., 0., 0., 1., 0.},
+    {0, 1, 2, 3}
+  );
+
+  CHECK(
+    compare_vectors(
+      test_element.get_global_indices(),
+      {0, 1, 2, 3}
+    )
+  );
+
+  CHECK( test_element.cell_center()[0] == 1. / 2. );
+  CHECK( test_element.cell_center()[1] == 1. / 2. );
+
+  CHECK( test_element.get_volume() == 1. );
+}
+
+
+TEST_CASE( "Assmble a finite elements mesh from a file", "[FiniteElementsMesh]" ) {
+  FiniteElementsMesh mesh = FiniteElementsMeshBuilder::BuildFromFile("./test_resources/coarse_triangle.vtk");
+
+  std::shared_ptr<IFiniteElement> test_elem = mesh.get_element(8);
+  
+  CHECK( test_elem->get_element_type() == 2 );
+  CHECK( compare_vectors(
+    test_elem->get_global_indices(),
+    {0, 9, 7}
+  ) );
+
+  double volume = 0.1875 / 2;
+  CHECK( Approx(test_elem->get_volume()).epsilon(1.e-4) == volume);
+}
+
+
+TEST_CASE( "Assmble a finite volume mesh from a file", "[FiniteVolumeMesh]" ) {
+  FiniteVolumesMesh mesh = FiniteVolumesMeshBuilder::BuildFromFile("./test_resources/coarse_triangle.vtk");
+
+  std::shared_ptr<FiniteVolumeElement> test_elem = mesh.get_element(12);
+  
+  CHECK( compare_vectors(
+    test_elem->get_global_indices(),
+    {0, 9, 7}
+  ) );
+
+  double volume = 0.1875 / 2;
+  CHECK( Approx(test_elem->get_volume()).epsilon(1.e-4) == volume);
 }
